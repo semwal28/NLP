@@ -1,0 +1,26 @@
+Senior Full Stack / AI Engineer - TechNova Systems
+
+About the Role:
+TechNova Systems is seeking an experienced Senior Full Stack / AI Engineer to lead the design and implementation of next-generation enterprise applications powered by Large Language Models (LLMs) and modern cloud architectures. You will work closely with product managers and ML researchers to bring intelligent agentic workflows to life.
+
+Key Responsibilities:
+- Design, build, and deploy production-grade Python microservices using FastAPI and Docker.
+- Architect and optimize LLM-powered systems including Retrieval-Augmented Generation (RAG) pipelines and vector databases (Pinecone, ChromaDB).
+- Build modern, accessible, and high-performance user interfaces using React and TypeScript.
+- Optimize cloud infrastructure and CI/CD pipelines on AWS (ECS/EKS, Lambda, S3, CloudFront).
+- Collaborate with cross-functional teams to translate business problems into scalable technical architectures.
+- Mentor junior engineers and champion code quality, unit testing, and documentation best practices.
+
+Requirements & Qualifications:
+- 4+ years of professional software engineering experience with Python and JavaScript/TypeScript.
+- Strong hands-on experience with modern web frameworks (FastAPI, Flask, React).
+- Practical experience with Natural Language Processing (NLP), LLM APIs (OpenAI, Google Gemini, Anthropic), and RAG frameworks (LangChain, LlamaIndex).
+- Proficient with containerization and cloud orchestration: Docker, Kubernetes, AWS.
+- Experience with relational and NoSQL databases: PostgreSQL, Redis.
+- Solid understanding of distributed systems, RESTful API design, and asynchronous programming.
+- Bachelor's or Master's degree in Computer Science, Software Engineering, or equivalent practical experience.
+
+Nice to Have:
+- Experience fine-tuning open-source LLMs (Llama, Mistral).
+- Familiarity with monitoring and observability tools (Prometheus, Grafana, Datadog).
+- Contributions to open-source AI/developer tooling projects.
