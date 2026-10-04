@@ -10,7 +10,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
+from typing import Any, Optional
 
 import streamlit as st
 import plotly.graph_objects as go
@@ -136,38 +138,57 @@ def _show_api_warning() -> None:
                     st.rerun()
 
 
-def _score_color(score: int | float) -> str:
+def _safe_float(val: Any, default: float = 0.0) -> float:
+    """Safely convert strings, integers, or floats into float numbers."""
+    if val is None:
+        return default
+    if isinstance(val, (int, float)):
+        return float(val)
+    if isinstance(val, str):
+        match = re.search(r"[-+]?\d*\.?\d+", val)
+        if match:
+            try:
+                return float(match.group(0))
+            except ValueError:
+                pass
+    return default
+
+
+def _score_color(score: Any) -> str:
     """Return a hex colour code appropriate for score (0-100)."""
-    if score >= 80:
+    s = _safe_float(score)
+    if s >= 80:
         return "#10B981"
-    elif score >= 60:
+    elif s >= 60:
         return "#00D4AA"
-    elif score >= 40:
+    elif s >= 40:
         return "#F59E0B"
     return "#EF4444"
 
 
-def _score_label(score: int | float) -> str:
-    if score >= 80:
+def _score_label(score: Any) -> str:
+    s = _safe_float(score)
+    if s >= 80:
         return "Excellent"
-    elif score >= 60:
+    elif s >= 60:
         return "Good"
-    elif score >= 40:
+    elif s >= 40:
         return "Average"
     return "Needs Improvement"
 
 
-def _build_gauge(score: int | float, title: str = "Score") -> go.Figure:
+def _build_gauge(score: Any, title: str = "Score") -> go.Figure:
     """Create a Plotly gauge chart for a 0-100 score."""
+    val = _safe_float(score)
     fig = go.Figure(
         go.Indicator(
             mode="gauge+number",
-            value=score,
+            value=val,
             title={"text": title, "font": {"size": 16, "color": "#E8E8ED", "family": "Inter"}},
-            number={"font": {"size": 48, "color": _score_color(score), "family": "Inter"}, "suffix": "/100"},
+            number={"font": {"size": 48, "color": _score_color(val), "family": "Inter"}, "suffix": "/100"},
             gauge={
                 "axis": {"range": [0, 100], "tickwidth": 1, "tickcolor": "#2D3148"},
-                "bar": {"color": _score_color(score), "thickness": 0.7},
+                "bar": {"color": _score_color(val), "thickness": 0.7},
                 "bgcolor": "#1A1D2E",
                 "borderwidth": 1,
                 "bordercolor": "#2D3148",
@@ -180,7 +201,7 @@ def _build_gauge(score: int | float, title: str = "Score") -> go.Figure:
                 "threshold": {
                     "line": {"color": "#6C63FF", "width": 3},
                     "thickness": 0.8,
-                    "value": score,
+                    "value": val,
                 },
             },
         )
@@ -195,12 +216,16 @@ def _build_gauge(score: int | float, title: str = "Score") -> go.Figure:
     return fig
 
 
-def _build_radar(categories: list[str], scores: list[int | float]) -> go.Figure:
+def _build_radar(categories: list[str], scores: list[Any]) -> go.Figure:
     """Create a radar chart for multi-dimensional scores."""
     fig = go.Figure()
+    if not categories or not scores:
+        return fig
+
+    safe_scores = [_safe_float(s) for s in scores]
     fig.add_trace(
         go.Scatterpolar(
-            r=scores + [scores[0]],
+            r=safe_scores + [safe_scores[0]],
             theta=categories + [categories[0]],
             fill="toself",
             fillcolor="rgba(108,99,255,0.15)",
@@ -233,19 +258,21 @@ def _build_radar(categories: list[str], scores: list[int | float]) -> go.Figure:
     return fig
 
 
-def _build_skill_bars(matched: list[dict], missing: list[dict]) -> go.Figure:
+def _build_skill_bars(matched: list[Any], missing: list[Any]) -> go.Figure:
     """Create a horizontal bar chart comparing matched vs missing skills."""
     all_skills = []
     colors = []
     categories = []
 
     for item in matched:
-        all_skills.append(item.get("skill", "Unknown"))
+        skill_name = item.get("skill", "Unknown") if isinstance(item, dict) else str(item)
+        all_skills.append(skill_name)
         colors.append("#10B981")
         categories.append("Matched")
 
     for item in missing:
-        all_skills.append(item.get("skill", "Unknown"))
+        skill_name = item.get("skill", "Unknown") if isinstance(item, dict) else str(item)
+        all_skills.append(skill_name)
         colors.append("#EF4444")
         categories.append("Missing")
 
@@ -312,10 +339,13 @@ def _render_parsed_resume_view(parsed: dict) -> None:
         experiences = parsed.get("experience", [])
         if experiences:
             for exp in experiences:
-                with st.expander(f"**{exp.get('title', 'Role')}** — {exp.get('company', 'Company')}", expanded=True):
-                    st.caption(exp.get("duration", ""))
-                    for hl in exp.get("highlights", []):
-                        st.markdown(f"- {hl}")
+                if isinstance(exp, dict):
+                    with st.expander(f"**{exp.get('title', 'Role')}** — {exp.get('company', 'Company')}", expanded=True):
+                        st.caption(exp.get("duration", ""))
+                        for hl in exp.get("highlights", []):
+                            st.markdown(f"- {hl}")
+                else:
+                    st.markdown(f"- {exp}")
         else:
             st.info("No work experience found in the resume.")
 
@@ -323,10 +353,13 @@ def _render_parsed_resume_view(parsed: dict) -> None:
         education = parsed.get("education", [])
         if education:
             for edu in education:
-                st.markdown(
-                    f"🎓 **{edu.get('degree', 'Degree')}** — {edu.get('institution', '')} "
-                    f"({edu.get('year', '')})"
-                )
+                if isinstance(edu, dict):
+                    st.markdown(
+                        f"🎓 **{edu.get('degree', 'Degree')}** — {edu.get('institution', '')} "
+                        f"({edu.get('year', '')})"
+                    )
+                else:
+                    st.markdown(f"🎓 {edu}")
         else:
             st.info("No education information found.")
 
@@ -342,9 +375,12 @@ def _render_parsed_resume_view(parsed: dict) -> None:
         projects = parsed.get("projects", [])
         if projects:
             for proj in projects:
-                st.markdown(f"**{proj.get('name', 'Project')}**")
-                st.markdown(f"> {proj.get('description', '')}")
-                st.markdown("---")
+                if isinstance(proj, dict):
+                    st.markdown(f"**{proj.get('name', 'Project')}**")
+                    st.markdown(f"> {proj.get('description', '')}")
+                    st.markdown("---")
+                else:
+                    st.markdown(f"- {proj}")
         else:
             st.info("No projects found in the resume.")
 
@@ -445,6 +481,7 @@ with st.sidebar:
             st.session_state.target_jd_input = sample_jd_path.read_text(encoding="utf-8")
         st.session_state.target_role_input = "Senior Full Stack / AI Engineer"
         st.session_state.target_interview_role = "Senior Full Stack / AI Engineer"
+        st.session_state.input_interview_role = "Senior Full Stack / AI Engineer"
         st.success("Demo session loaded!")
         st.rerun()
 
@@ -481,9 +518,7 @@ with st.sidebar:
                 st.session_state.custom_api_key = sidebar_key.strip()
                 _sync_api_key()
                 st.success("API Key updated!")
-                st.rerun()
-
-    st.caption(f"v{config.APP_VERSION} • Google Gemini 1.5")
+    st.caption(f"v{config.APP_VERSION} • Google Gemini ({config.GEMINI_MODEL})")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -718,7 +753,8 @@ elif page == "📄  Upload Resume":
                         st.session_state.parsed_resume = parsed
                         st.rerun()
                     else:
-                        st.error("Failed to parse resume with AI.")
+                        err = parsed.get("error") if parsed else "No response"
+                        st.error(f"Failed to parse resume with AI: {err}")
 
     _render_footer()
 
@@ -788,7 +824,8 @@ elif page == "📊  ATS Score Analysis":
                     st.session_state.ats_result = result
                     st.rerun()
                 else:
-                    st.error("Error analysing ATS compatibility with Gemini. Please try again.")
+                    err = result.get("error") if result else "No response"
+                    st.error(f"Error analysing ATS compatibility with Gemini: {err}")
 
         # ── Display Results ───────────────────────────────────────────
         result = st.session_state.ats_result
@@ -830,23 +867,24 @@ elif page == "📊  ATS Score Analysis":
                 st.plotly_chart(_build_radar(cats, scores), use_container_width=True)
 
                 # Individual category cards
-                cat_cols = st.columns(len(cats))
-                for col, cat_name in zip(cat_cols, cats):
-                    sc = cat_scores[cat_name].get("score", 0)
-                    fb = cat_scores[cat_name].get("feedback", "")
-                    with col:
-                        st.markdown(
-                            f"""
-                            <div class="glass-card fade-in" style="text-align:center; min-height:160px;">
-                                <div style="font-size:0.85rem; color:#9CA3AF; margin-bottom:4px;">{cat_name}</div>
-                                <div style="font-size:1.8rem; font-weight:700; color:{_score_color(sc)};">
-                                    {sc}%
+                if cats:
+                    cat_cols = st.columns(len(cats))
+                    for col, cat_name in zip(cat_cols, cats):
+                        sc = cat_scores[cat_name].get("score", 0)
+                        fb = cat_scores[cat_name].get("feedback", "")
+                        with col:
+                            st.markdown(
+                                f"""
+                                <div class="glass-card fade-in" style="text-align:center; min-height:160px;">
+                                    <div style="font-size:0.85rem; color:#9CA3AF; margin-bottom:4px;">{cat_name}</div>
+                                    <div style="font-size:1.8rem; font-weight:700; color:{_score_color(sc)};">
+                                        {sc}%
+                                    </div>
+                                    <p style="font-size:0.8rem; color:#9CA3AF; margin-top:8px;">{fb}</p>
                                 </div>
-                                <p style="font-size:0.8rem; color:#9CA3AF; margin-top:8px;">{fb}</p>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
+                                """,
+                                unsafe_allow_html=True,
+                            )
 
             st.markdown("<br>", unsafe_allow_html=True)
 
@@ -962,7 +1000,8 @@ elif page == "🔍  Skill Gap Analysis":
                     st.session_state.skill_gap_result = result
                     st.rerun()
                 else:
-                    st.error("Error analysing skill gap with Gemini. Please try again.")
+                    err = result.get("error") if result else "No response"
+                    st.error(f"Error analysing skill gap with Gemini: {err}")
 
         # ── Display Results ───────────────────────────────────────────
         result = st.session_state.skill_gap_result
@@ -1071,6 +1110,7 @@ elif page == "🎤  Mock Interview":
             st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
             if st.button("📋 Sample Role", key="btn_sample_int_role"):
                 st.session_state.target_interview_role = "Senior Full Stack / AI Engineer"
+                st.session_state.input_interview_role = "Senior Full Stack / AI Engineer"
                 st.rerun()
 
         c_diff, c_num = st.columns(2)
@@ -1127,7 +1167,8 @@ elif page == "🎤  Mock Interview":
                     st.session_state.evaluation_results = {}
                     st.rerun()
                 else:
-                    st.error("Error generating interview questions with Gemini. Please try again.")
+                    err = result.get("error") if result else "No response"
+                    st.error(f"Error generating interview questions with Gemini: {err}")
 
         # ── Display Questions & Practice ──────────────────────────────
         questions = st.session_state.interview_questions
@@ -1185,7 +1226,7 @@ elif page == "🎤  Mock Interview":
                         st.markdown("##### Your Answer")
                     with col_ans_sample:
                         if idx == 0 and st.button("💡 Insert Sample Answer", key="btn_sample_ans_q0"):
-                            st.session_state[f"ans_text_{idx}"] = (
+                            sample_answer_text = (
                                 "To achieve low latency and minimize hallucinations for 50k+ daily queries, "
                                 "we implemented a multi-stage RAG pipeline. First, we utilized semantic chunking "
                                 "with overlapping windows and indexed embeddings in Pinecone using HNSW indexing. "
@@ -1195,6 +1236,8 @@ elif page == "🎤  Mock Interview":
                                 "cutting p95 latency by 40%. Finally, strict prompt grounding guardrails instructed "
                                 "the LLM to decline answering if context confidence fell below our calibrated threshold."
                             )
+                            st.session_state[f"ans_text_{idx}"] = sample_answer_text
+                            st.session_state[f"answer_{idx}"] = sample_answer_text
                             st.rerun()
 
                     default_ans = st.session_state.get(f"ans_text_{idx}", "")
@@ -1215,8 +1258,7 @@ elif page == "🎤  Mock Interview":
 
                     if btn_sub_demo:
                         st.session_state.evaluation_results[idx] = DEMO_EVALUATION_RESULT
-                        if DEMO_EVALUATION_RESULT.get("score") not in st.session_state.interview_scores:
-                            st.session_state.interview_scores.append(DEMO_EVALUATION_RESULT.get("score"))
+                        st.session_state.interview_scores.append(DEMO_EVALUATION_RESULT.get("score", 9))
                         st.rerun()
 
                     if btn_sub:
@@ -1238,11 +1280,11 @@ elif page == "🎤  Mock Interview":
                             if evaluation and not evaluation.get("parse_error"):
                                 st.session_state.evaluation_results[idx] = evaluation
                                 score = evaluation.get("score", 0)
-                                if score not in [s for s in st.session_state.interview_scores]:
-                                    st.session_state.interview_scores.append(score)
+                                st.session_state.interview_scores.append(score)
                                 st.rerun()
                             else:
-                                st.error("Error evaluating answer with Gemini.")
+                                err = evaluation.get("error") if evaluation else "No response"
+                                st.error(f"Error evaluating answer with Gemini: {err}")
 
                     # ── Show evaluation if available ───────────────────
                     if idx in st.session_state.evaluation_results:

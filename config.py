@@ -33,7 +33,14 @@ def _resolve_api_key() -> str:
 
 # ── Google Gemini API Configuration ──────────────────────────────────────────
 GEMINI_API_KEY: str = _resolve_api_key()
-GEMINI_MODEL: str = "gemini-1.5-flash"
+GEMINI_MODEL: str = "gemini-3.5-flash-lite"
+FALLBACK_MODELS: list[str] = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-flash-latest",
+    "gemini-2.5-flash",
+    "gemini-2.5-pro",
+]
 MAX_OUTPUT_TOKENS: int = 8192
 TEMPERATURE: float = 0.7
 TOP_P: float = 0.95

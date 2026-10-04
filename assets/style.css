@@ -4,7 +4,7 @@
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Imports ──────────────────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* ── CSS Variables ────────────────────────────────────────────────────────── */
 :root {
@@ -19,6 +19,7 @@
     --text-primary: #E8E8ED;
     --text-secondary: #9CA3AF;
     --border: #2D3148;
+    --border-light: rgba(108, 99, 255, 0.25);
     --success: #10B981;
     --warning: #F59E0B;
     --danger: #EF4444;
@@ -35,6 +36,33 @@
 /* ── Global Overrides ─────────────────────────────────────────────────────── */
 .stApp {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+}
+
+/* ── Custom Sleek Scrollbars ──────────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0F1117;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2D3148;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
+}
+
+/* ── Selection Color ──────────────────────────────────────────────────────── */
+::selection {
+    background: rgba(108, 99, 255, 0.35);
+    color: #FFFFFF;
 }
 
 /* ── Sidebar ──────────────────────────────────────────────────────────────── */
@@ -48,10 +76,11 @@ section[data-testid="stSidebar"] .stRadio label {
     padding: 8px 12px;
     border-radius: var(--radius-sm);
     transition: var(--transition);
+    color: var(--text-primary) !important;
 }
 
 section[data-testid="stSidebar"] .stRadio label:hover {
-    background: rgba(108, 99, 255, 0.1);
+    background: rgba(108, 99, 255, 0.12);
 }
 
 /* ── Metric Cards ─────────────────────────────────────────────────────────── */
@@ -84,7 +113,8 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
 }
 
 /* ── Buttons ──────────────────────────────────────────────────────────────── */
-.stButton > button {
+.stButton > button,
+.stDownloadButton > button {
     background: var(--gradient-primary) !important;
     color: white !important;
     border: none !important;
@@ -99,7 +129,8 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     overflow: hidden;
 }
 
-.stButton > button::after {
+.stButton > button::after,
+.stDownloadButton > button::after {
     content: '';
     position: absolute;
     top: 50%;
@@ -112,39 +143,61 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     transition: width 0.6s ease, height 0.6s ease;
 }
 
-.stButton > button:hover::after {
+.stButton > button:hover::after,
+.stDownloadButton > button:hover::after {
     width: 300px;
     height: 300px;
 }
 
-.stButton > button:hover {
+.stButton > button:hover,
+.stDownloadButton > button:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 20px rgba(108, 99, 255, 0.45) !important;
 }
 
-.stButton > button:active {
+.stButton > button:active,
+.stDownloadButton > button:active {
     transform: translateY(0px) !important;
 }
 
+/* ── Secondary & Outline Buttons ──────────────────────────────────────────── */
+button[kind="secondary"] {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-primary) !important;
+}
+
+button[kind="secondary"]:hover {
+    border-color: var(--primary) !important;
+    color: var(--primary-light) !important;
+}
+
 /* ── Expanders ────────────────────────────────────────────────────────────── */
-.streamlit-expanderHeader {
+.streamlit-expanderHeader,
+div[data-testid="stExpander"] details summary {
     background: var(--bg-card) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--radius) !important;
     font-weight: 600 !important;
+    color: var(--text-primary) !important;
     transition: var(--transition);
 }
 
-.streamlit-expanderHeader:hover {
+.streamlit-expanderHeader:hover,
+div[data-testid="stExpander"] details summary:hover {
     border-color: var(--primary) !important;
+}
+
+div[data-testid="stExpander"] details {
+    border: none !important;
 }
 
 /* ── Tabs ─────────────────────────────────────────────────────────────────── */
 .stTabs [data-baseweb="tab-list"] {
-    gap: 4px;
+    gap: 6px;
     background: var(--bg-card);
     border-radius: var(--radius);
-    padding: 4px;
+    padding: 6px;
     border: 1px solid var(--border);
 }
 
@@ -152,11 +205,20 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     border-radius: var(--radius-sm);
     font-weight: 500;
     padding: 8px 20px;
+    color: var(--text-secondary);
     transition: var(--transition);
+    border: none !important;
+}
+
+.stTabs [data-baseweb="tab"]:hover {
+    color: var(--text-primary);
+    background: rgba(108, 99, 255, 0.1);
 }
 
 .stTabs [aria-selected="true"] {
     background: var(--gradient-primary) !important;
+    color: white !important;
+    font-weight: 600;
 }
 
 /* ── File Uploader ────────────────────────────────────────────────────────── */
@@ -165,11 +227,13 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     border-radius: var(--radius) !important;
     padding: 20px !important;
     transition: var(--transition);
+    background: rgba(26, 29, 46, 0.5) !important;
 }
 
 [data-testid="stFileUploader"]:hover {
     border-color: var(--primary) !important;
-    background: rgba(108, 99, 255, 0.05) !important;
+    background: rgba(108, 99, 255, 0.08) !important;
+    box-shadow: var(--shadow-glow);
 }
 
 /* ── Text Inputs & Areas ──────────────────────────────────────────────────── */
@@ -197,10 +261,53 @@ div[data-testid="stMetric"] [data-testid="stMetricValue"] {
     transition: var(--transition) !important;
 }
 
+.stSelectbox [data-baseweb="select"] span {
+    color: var(--text-primary) !important;
+}
+
 /* ── Progress Bar ─────────────────────────────────────────────────────────── */
+.stProgress > div {
+    background-color: var(--bg-card) !important;
+    border-radius: 20px;
+}
+
 .stProgress > div > div {
     background: var(--gradient-primary) !important;
     border-radius: 20px;
+}
+
+/* ── Alerts & Callouts ────────────────────────────────────────────────────── */
+div[data-testid="stAlert"] {
+    background: rgba(26, 29, 46, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-primary) !important;
+}
+
+div[data-testid="stAlert"][data-baseweb="notification"] {
+    border-left: 4px solid var(--primary) !important;
+}
+
+/* ── Code Blocks ──────────────────────────────────────────────────── */
+code, pre {
+    font-family: 'JetBrains Mono', monospace !important;
+    background: rgba(26, 29, 46, 0.9) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    color: #34EDCA !important;
+    padding: 2px 6px;
+}
+
+pre {
+    padding: 16px !important;
+    overflow-x: auto;
+}
+
+pre code {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
 }
 
 /* ── Dividers ─────────────────────────────────────────────────────────────── */
@@ -241,6 +348,7 @@ hr {
     background: linear-gradient(135deg, #6C63FF, #00D4AA, #8B83FF, #34EDCA);
     background-size: 300% 300%;
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientShift 6s ease infinite;
     font-weight: 800;
@@ -431,6 +539,7 @@ hr {
     font-weight: 800;
     background: var(--gradient-primary);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -547,22 +656,32 @@ hr {
     box-shadow: var(--shadow-glow);
 }
 
-/* ── Interview Badge ──────────────────────────────────────────────────────── */
+/* ── Badges & Question Labels ─────────────────────────────────────────────── */
 .badge {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 0.82rem;
     font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
-.badge-technical { background: rgba(59, 130, 246, 0.13); color: #3B82F6; }
-.badge-behavioral { background: rgba(139, 92, 246, 0.13); color: #8B5CF6; }
-.badge-situational { background: rgba(245, 158, 11, 0.13); color: #F59E0B; }
-.badge-easy { background: rgba(16, 185, 129, 0.13); color: #10B981; }
-.badge-medium { background: rgba(245, 158, 11, 0.13); color: #F59E0B; }
-.badge-hard { background: rgba(239, 68, 68, 0.13); color: #EF4444; }
-.badge-skill { background: rgba(108, 99, 255, 0.15); color: #8B83FF; }
+/* Type Badges */
+.badge-technical { background: rgba(59, 130, 246, 0.15); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge-behavioral { background: rgba(139, 92, 246, 0.15); color: #8B5CF6; border: 1px solid rgba(139, 92, 246, 0.3); }
+.badge-situational { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-general { background: rgba(108, 99, 255, 0.15); color: #8B83FF; border: 1px solid rgba(108, 99, 255, 0.3); }
+
+/* Difficulty Badges */
+.badge-easy { background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-medium { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-hard { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+/* Skill & Role Badges */
+.badge-skill { background: rgba(108, 99, 255, 0.15); color: #8B83FF; border: 1px solid rgba(108, 99, 255, 0.3); }
+.badge-critical { background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+.badge-important { background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-nice-to-have { background: rgba(59, 130, 246, 0.15); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.3); }
 
 /* ── Missing Skill Card ───────────────────────────────────────────────────── */
 .skill-gap-card {
@@ -657,4 +776,33 @@ hr {
     .hero-section {
         padding: 30px 0 20px 0;
     }
+
+    .stTabs [data-baseweb="tab"] {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
 }
+
+/* ── Hide Streamlit Default UI Chrome & Watermarks ───────────────────────── */
+#MainMenu {
+    visibility: hidden !important;
+    display: none !important;
+}
+
+footer {
+    visibility: hidden !important;
+    display: none !important;
+}
+
+header[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+div[data-testid="stToolbar"] {
+    display: none !important;
+}
+
+div[data-testid="stDecoration"] {
+    display: none !important;
+}
+

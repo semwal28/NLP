@@ -23,13 +23,16 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     Returns:
         Concatenated text from all pages of the PDF.
     """
-    reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
-    pages: list[str] = []
-    for page in reader.pages:
-        text = page.extract_text()
-        if text:
-            pages.append(text)
-    return "\n".join(pages)
+    try:
+        reader = PyPDF2.PdfReader(io.BytesIO(file_bytes))
+        pages: list[str] = []
+        for page in reader.pages:
+            text = page.extract_text()
+            if text:
+                pages.append(text)
+        return "\n".join(pages)
+    except Exception:
+        return ""
 
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
@@ -41,12 +44,15 @@ def extract_text_from_docx(file_bytes: bytes) -> str:
     Returns:
         Concatenated text from all paragraphs in the document.
     """
-    doc = docx.Document(io.BytesIO(file_bytes))
-    paragraphs: list[str] = []
-    for para in doc.paragraphs:
-        if para.text.strip():
-            paragraphs.append(para.text.strip())
-    return "\n".join(paragraphs)
+    try:
+        doc = docx.Document(io.BytesIO(file_bytes))
+        paragraphs: list[str] = []
+        for para in doc.paragraphs:
+            if para.text.strip():
+                paragraphs.append(para.text.strip())
+        return "\n".join(paragraphs)
+    except Exception:
+        return ""
 
 
 def parse_resume(file_bytes: bytes, file_name: str) -> Optional[str]:
@@ -60,8 +66,15 @@ def parse_resume(file_bytes: bytes, file_name: str) -> Optional[str]:
         Extracted text, or ``None`` if the file type is unsupported.
     """
     lower_name = file_name.lower()
-    if lower_name.endswith(".pdf"):
-        return extract_text_from_pdf(file_bytes)
-    elif lower_name.endswith(".docx"):
-        return extract_text_from_docx(file_bytes)
+    try:
+        if lower_name.endswith(".pdf"):
+            text = extract_text_from_pdf(file_bytes)
+            return text if text.strip() else None
+        elif lower_name.endswith(".docx"):
+            text = extract_text_from_docx(file_bytes)
+            return text if text.strip() else None
+        elif lower_name.endswith((".txt", ".md")):
+            return file_bytes.decode("utf-8", errors="replace")
+    except Exception:
+        return None
     return None
