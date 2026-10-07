@@ -1,5 +1,11 @@
 # 🎯 AI Resume Analyzer & Interview Prep Coach
 
+> **Project Name:** AI Resume Analyzer  
+> **Student Name:** Dhruv Semwal  
+> **Registration No:** 23fe10cds00313  
+> **Semester:** 7th  
+> **Section:** NLP B  
+
 An NLP-powered web application that leverages **Google Gemini API** to provide intelligent resume analysis, ATS compatibility scoring, skill gap identification, and interactive interview preparation with AI-driven feedback.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -274,5 +280,11 @@ This project is created for educational purposes as part of an NLP course projec
 ---
 
 ## 👤 Author
+
+- **Name:** Dhruv Semwal
+- **Registration Number:** 23fe10cds00313
+- **Semester:** 7th
+- **Section:** NLP B
+- **Project Name:** AI Resume Analyzer
 
 Built with ❤️ using Google Gemini API and Streamlit.
